@@ -14,7 +14,7 @@ As consultas ficam em `supabase/CONSULTAR-SALAS.sql`:
 - `admin_room_daily`: evolução por dia de criação no fuso de São Paulo.
 - `admin_room_overview`: cada sala, criação, limite, encerramento, motivo e quantidade de mensagens.
 
-As visões não expõem texto das mensagens, apelidos nem posicionamentos políticos. As roles `anon` e `authenticated` não recebem acesso; consulte pelo SQL Editor administrativo. Não coloque a chave `service_role` no frontend para construir um painel.
+A visão detalhada inclui os dois apelidos preservados na sala, sem texto das mensagens nem posicionamentos políticos. As roles `anon` e `authenticated` não recebem acesso; consulte pelo SQL Editor administrativo. Não coloque a chave `service_role` no frontend para construir um painel.
 
 ## Como contar encerramentos
 
@@ -29,3 +29,11 @@ Consulta privada salva e favoritada no Supabase: **Resumo de salas — Fora da B
 https://supabase.com/dashboard/project/byydyqkwcakkcuvynzna/sql/3f4b72a2-847c-4ec8-8454-83467b1005be
 
 Verificações: migração testada em PostgreSQL local, aplicada no projeto real e resumo consultado com sucesso. Acesso HTTP com a chave pública às três visões foi recusado, conforme esperado. A chave pública do site não permite alterar o banco nem consultar todas as salas.
+
+## Apelidos por sala
+
+A migração `supabase/003_room_nicknames.sql` já foi aplicada. Novas salas capturam os apelidos no momento da criação (`at_creation`), sem depender de alterações posteriores no perfil. Salas antigas foram preenchidas com o apelido atual disponível e marcadas como `current_profile_backfill`; não é possível garantir o apelido histórico antes desse registro.
+
+Consulta salva: **Salas e participantes — Fora da Bolha**.
+
+https://supabase.com/dashboard/project/byydyqkwcakkcuvynzna/sql/b915fc3d-8c5b-4d76-a076-f229dbe1855f
