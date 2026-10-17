@@ -8,6 +8,12 @@ const csp=config.headers[0].headers.find(h=>h.key==='Content-Security-Policy').v
 assert.ok(!csp.includes('unsafe-inline')&&!csp.includes('unsafe-eval'));
 assert.ok(csp.includes("frame-ancestors 'none'"));
 const sitemap=await fs.readFile('dist/sitemap.xml','utf8');
+const home=await fs.readFile('dist/index.html','utf8');
+assert.ok(!/\bBETA\b|DEMONSTRAÇÃO|Prévia interativa|demo-enter|wait-demo/.test(home));
+assert.ok(!home.includes('fonts.googleapis.com')&&!home.includes('fonts.gstatic.com'));
+assert.ok(home.includes('href="/assets/style-')&&home.includes('src="/assets/app-'));
+const preloadFonts=[...home.matchAll(/rel="preload" href="([^\"]+\.woff2)"/g)];assert.equal(preloadFonts.length,2);
+for(const [,file] of preloadFonts)await fs.access('dist'+file);
 const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1]);assert.equal(urls.length,6);
 for(const url of urls){
  assert.equal(new URL(url).origin,site.url);

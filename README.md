@@ -4,7 +4,7 @@ Primeira versão de um chat de texto entre pessoas de perspectivas políticas di
 
 ## Visualizar
 
-Sirva `dist/` com qualquer servidor estático (Node 22: `npx serve dist`). Sem credenciais, o site usa uma demonstração explicitamente identificada, com duas mensagens de exemplo e envio local. Não simula participantes reais, estatísticas ou disponibilidade.
+Execute `npm ci`, `npm run build` e `npm run preview`. A versão oficial utiliza apenas o Supabase real. Sem configuração válida, exibe indisponibilidade, sem simular participantes ou mensagens.
 
 ## Conectar o Supabase
 
@@ -15,7 +15,7 @@ Sirva `dist/` com qualquer servidor estático (Node 22: `npx serve dist`). Sem c
 5. Publique a pasta `dist` na Vercel (Framework: Other, Output Directory: dist, sem build) ou em outra hospedagem estática.
 6. Teste com dois navegadores/perfis separados (um de cada lado). Abas no mesmo perfil compartilham a identidade de autenticação.
 
-Com configuração preenchida, a demonstração é desligada e o fluxo usa o backend real. Erros são exibidos; não há fallback silencioso para usuários simulados.
+O fluxo usa o backend real. Erros são exibidos; não existe modo de demonstração na versão oficial.
 
 ## Arquitetura
 
@@ -40,4 +40,4 @@ O limite de 80 salas não garante enquadramento na franquia: mensagens, tráfego
 
 ## Verificação local
 
-`node --check dist/app.js` e `node --check dist/config.js` verificam sintaxe. A configuração atual conecta ao Supabase real. Para uma demonstração isolada localmente, esvazie os dois campos de configuração em uma cópia do projeto.
+`npm run check` valida as páginas, recursos locais, metadados, sitemap e CSP. A configuração atual conecta ao Supabase real. O build empacota o aplicativo, mantém o SDK sob demanda e serve as fontes localmente.
