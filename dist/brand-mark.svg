@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="8" y1="2" x2="56" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6A80FF"/><stop offset="1" stop-color="#3D51D4"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="18" fill="url(#tile)"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="17.5" stroke="white" stroke-opacity=".18"/>
+  <path d="M17 12.5H37.5C42.2 12.5 45 15.3 45 20V27C45 31.7 42.2 34.5 37.5 34.5H23L14 41V34.2C10.8 33.2 9.5 30.7 9.5 27V20C9.5 15.3 12.3 12.5 17 12.5Z" fill="#C5D0FF"/>
+  <path d="M19 23.5H34M29.5 19L34 23.5L29.5 28" stroke="#4559D0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30 29H47C51.5 29 54.5 32 54.5 36.5V42C54.5 45.3 53.1 47.7 50 48.7V54L42.5 49.5H30C25.5 49.5 22.5 46.5 22.5 42V36.5C22.5 32 25.5 29 30 29Z" fill="#F9FAFF" stroke="#4C60E0" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M45.5 39.5H32M36.5 35L32 39.5L36.5 44" stroke="#4C60E0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
