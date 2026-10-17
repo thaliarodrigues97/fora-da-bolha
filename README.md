@@ -1,4 +1,4 @@
-# Entre Lados
+# Fora da Bolha
 
 Primeira versão de um chat de texto entre pessoas de perspectivas políticas diferentes. Interface responsiva em português, fila, salas de 30 minutos, encerramento, denúncia e bloqueio por identidade.
 
@@ -30,7 +30,7 @@ Com configuração preenchida, a demonstração é desligada e o fluxo usa o bac
 
 ## Limitações e abertura pública
 
-O backend SQL foi preparado, mas precisa ser executado e validado em um projeto real: esta entrega não provisiona Supabase nem atesta testes de integração. Execute a lista em `supabase/VALIDACAO.md` antes de abrir a usuários.
+O projeto Supabase foi criado e configurado pelo usuário. A integração foi validada com sessões anônimas e chamadas reais ao banco; veja `VALIDACAO-INTEGRACAO.md`. A lista em `supabase/VALIDACAO.md` contém também os cenários que ainda precisam de validação antes da abertura pública. Não execute novamente o schema no projeto já configurado.
 
 Não há Turnstile/CAPTCHA integrado, moderação administrativa própria, banimento persistente entre novas identidades, rotina automática de retenção/exclusão nem controle global de entrada por IP. Autenticação anônima permite contornar bloqueio criando outra identidade. Habilite CAPTCHA na autenticação anônima e proteção de tráfego antes de divulgação pública; a configuração CAPTCHA exige adaptar o formulário para enviar o token correspondente.
 
@@ -40,4 +40,4 @@ O limite de 80 salas não garante enquadramento na franquia: mensagens, tráfego
 
 ## Verificação local
 
-`node --check dist/app.js` e `node --check dist/config.js` verificam sintaxe. A configuração vazia é intencional para a prévia.
+`node --check dist/app.js` e `node --check dist/config.js` verificam sintaxe. A configuração atual conecta ao Supabase real. Para uma demonstração isolada localmente, esvazie os dois campos de configuração em uma cópia do projeto.
