@@ -66,7 +66,7 @@ grant select on public.profiles,public.rooms,public.messages to authenticated;
 
 create function public.join_queue(p_nickname text,p_side text) returns jsonb
 language plpgsql security definer set search_path=public,pg_temp as $$
-declare me uuid:=auth.uid(); partner uuid; active_room uuid;
+declare me uuid:=auth.uid(); partner uuid; first_user uuid; active_room uuid; room_count integer;
 begin
  if me is null then raise exception 'Acesso não autenticado'; end if;
  if char_length(trim(p_nickname)) not between 2 and 24 or p_side not in ('left','right') or p_side is null or p_nickname is null then raise exception 'Dados inválidos'; end if;
@@ -80,19 +80,26 @@ begin
  on conflict(id) do update set nickname=excluded.nickname,side=excluded.side;
  insert into public.waiting(user_id,side) values(me,p_side)
  on conflict(user_id) do update set heartbeat_at=now(),side=excluded.side;
- -- Limite conservador de 80 salas; pode ser ajustado após medir uso.
- if (select count(*) from public.rooms where status='active')>=80 then
-  return jsonb_build_object('state','capacity');
- end if;
- select w.user_id into partner from public.waiting w
- where w.side<>p_side and w.user_id<>me
- and not exists(select 1 from public.blocks b where (b.blocker=me and b.blocked=w.user_id) or(b.blocked=me and b.blocker=w.user_id))
- and not exists(select 1 from public.rooms r where r.status='active' and w.user_id in(r.user_a,r.user_b))
- order by w.joined_at limit 1 for update skip locked;
- if partner is null then return jsonb_build_object('state','waiting'); end if;
- insert into public.rooms(user_a,user_b) values(me,partner) returning id into active_room;
- delete from public.waiting where user_id in(me,partner);
- return jsonb_build_object('room_id',active_room,'state','matched');
+ -- Processa a fila inteira: quem consulta primeiro não ganha prioridade.
+ select count(*) into room_count from public.rooms where status='active';
+ while room_count<80 loop
+  select a.user_id,b.user_id into first_user,partner
+  from public.waiting a join public.waiting b on a.side='left' and b.side='right'
+  where not exists(select 1 from public.blocks x where
+   (x.blocker=a.user_id and x.blocked=b.user_id) or
+   (x.blocker=b.user_id and x.blocked=a.user_id))
+  and not exists(select 1 from public.rooms r where r.status='active'
+   and (a.user_id in(r.user_a,r.user_b) or b.user_id in(r.user_a,r.user_b)))
+  order by greatest(a.joined_at,b.joined_at),least(a.joined_at,b.joined_at),a.user_id,b.user_id
+  limit 1;
+  exit when first_user is null;
+  insert into public.rooms(user_a,user_b) values(first_user,partner);
+  delete from public.waiting where user_id in(first_user,partner);
+  room_count:=room_count+1;
+ end loop;
+ select id into active_room from public.rooms where status='active' and me in(user_a,user_b) limit 1;
+ if active_room is not null then return jsonb_build_object('room_id',active_room,'state','matched'); end if;
+ return jsonb_build_object('state',case when room_count>=80 then 'capacity' else 'waiting' end);
 end $$;
 
 create function public.leave_session() returns void

@@ -78,7 +78,15 @@ $('#cancel-wait').onclick=async()=>{++sessionToken;stop();screen('landing');if(l
 function finish(text){stop();$('#chat-ended').hidden=false;$('#end-copy').textContent=text;$('#message-input').disabled=true;$('#message-form button').disabled=true}
 async function leave(){if(live){const {error}=await db.rpc('leave_session');check(error)}finish('Você encerrou a conversa. Cada encontro é uma nova oportunidade.')}
 $('#leave').onclick=()=>{modal('<h2>Encerrar esta conversa?</h2><p>Você pode buscar outra pessoa em seguida.</p><button class="primary" id="confirm-leave">Encerrar conversa →</button>');$('#confirm-leave').onclick=async()=>{try{await leave();$('#info-dialog').close()}catch(e){$('#confirm-leave').textContent='Falha ao encerrar. Tente novamente.'}}};
-$('#back-home').onclick=()=>{room=null;screen('landing')};$('#next-chat').onclick=()=>{room=null;begin()};
+$('#back-home').onclick=()=>{room=null;screen('landing')};$('#next-chat').onclick=async()=>{
+ if(busy)return;
+ enableMatchSound();busy=true;const button=$('#next-chat');button.disabled=true;
+ try{
+  const {error}=await db.rpc('leave_session');check(error);
+  ++sessionToken;stop();room=null;busy=false;await begin();
+ }catch(e){$('#end-copy').textContent='Não foi possível buscar outra pessoa. Tente novamente.'}
+ finally{busy=false;button.disabled=false}
+};
 $('#message-input').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('#message-form').requestSubmit()}};
 $('#message-form').onsubmit=async e=>{e.preventDefault();const input=$('#message-input');const text=input.value.trim();if(!text||!room||!$('#chat-ended').hidden)return;if(Date.now()>=Date.parse(room.expires_at)){countdown();return}if(Date.now()-lastSend<1000){$('#chat-status').textContent='Espere um instante antes de enviar outra mensagem.';return}lastSend=Date.now();const button=$('#message-form button');button.disabled=true;try{const {data,error}=await db.rpc('send_message',{p_room:room.id,p_body:text});check(error);receive(data);input.value='';input.focus()}catch(e){$('#chat-status').textContent='Não foi possível enviar: '+e.message}finally{button.disabled=!$('#chat-ended').hidden}};
 $('#report').onclick=()=>{if(!$('#chat-ended').hidden)return;modal('<h2>Denunciar e bloquear</h2><p>A conversa será encerrada e essa identidade não será pareada com você novamente.</p><label for="reason">Motivo</label><select id="reason"><option>Ataques pessoais ou discriminação</option><option>Ameaça ou exposição de dados</option><option>Spam ou comportamento inadequado</option></select><label for="details">Detalhes (opcional)</label><textarea id="details" maxlength="500" placeholder="O que aconteceu?"></textarea><button class="primary" id="send-report">Denunciar e encerrar →</button>');$('#send-report').onclick=async()=>{const btn=$('#send-report');btn.disabled=true;try{if(live){const {error}=await db.rpc('report_room',{p_room:room.id,p_reason:$('#reason').value,p_details:$('#details').value});check(error)}finish('Denúncia registrada. Esta identidade foi bloqueada para novos encontros.');$('#info-dialog').close()}catch(e){btn.textContent='Falha ao denunciar. Tente novamente.';btn.disabled=false}}};
