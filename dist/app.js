@@ -4,28 +4,38 @@ const cfg=window.ENTRELADOS_CONFIG||{};
 const live=Boolean(cfg.supabaseUrl&&cfg.supabaseAnonKey);
 let db,user,room,profile,channel,poll,tick,busy=false,sessionToken=0,lastSend=0;
 const seen=new Set();
-let matchAudio;
+let matchAudio,matchAudioReady;
 function enableMatchSound(){
  try{
   const AudioContext=window.AudioContext||window.webkitAudioContext;
   if(!AudioContext)return;
   matchAudio??=new AudioContext();
-  if(matchAudio.state==='suspended')void matchAudio.resume().catch(()=>{});
+  if(matchAudio.state!=='running')matchAudioReady=matchAudio.resume().catch(()=>{});
+  // Start a silent buffer during the gesture to unlock audio on mobile browsers.
+  const unlock=matchAudio.createBufferSource();
+  unlock.buffer=matchAudio.createBuffer(1,1,matchAudio.sampleRate);
+  unlock.connect(matchAudio.destination);
+  unlock.onended=()=>unlock.disconnect();
+  unlock.start();
  }catch{}
 }
-function playMatchSound(){
+async function playMatchSound(){
+ const matchedRoom=room;
  try{
-  if(!matchAudio||matchAudio.state!=='running')return;
-  const start=matchAudio.currentTime;
-  for(const [frequency,delay] of [[523.25,0],[659.25,0.16]]){
+  if(!matchAudio)return;
+  await matchAudioReady;
+  if(matchAudio.state!=='running')await matchAudio.resume();
+  if(room!==matchedRoom||!$('#chat-ended').hidden||matchAudio.state!=='running')return;
+  const start=matchAudio.currentTime+0.02;
+  for(const [frequency,delay] of [[660,0],[880,0.2]]){
    const tone=matchAudio.createOscillator(),volume=matchAudio.createGain();
    tone.type='sine';tone.frequency.value=frequency;
    volume.gain.setValueAtTime(0,start+delay);
-   volume.gain.linearRampToValueAtTime(0.045,start+delay+0.025);
-   volume.gain.exponentialRampToValueAtTime(0.0001,start+delay+0.38);
+   volume.gain.linearRampToValueAtTime(0.12,start+delay+0.025);
+   volume.gain.exponentialRampToValueAtTime(0.0001,start+delay+0.48);
    tone.connect(volume);volume.connect(matchAudio.destination);
    tone.onended=()=>{tone.disconnect();volume.disconnect()};
-   tone.start(start+delay);tone.stop(start+delay+0.4);
+   tone.start(start+delay);tone.stop(start+delay+0.5);
   }
  }catch{}
 }
