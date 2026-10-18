@@ -27,10 +27,16 @@ select
  d.details as detalhes_denuncia,
  m.id as mensagem_id,
  m.sender_id as autor_id,
+ n.ip_address as ip_do_autor,
+ n.received_at as ip_registrado_em,
+ n.ip_source as origem_do_ip,
+ n.session_id as sessao_autenticada,
+ n.preserve_until as preservar_ip_ate,
  r.nicknames_source as origem_dos_apelidos
 from ultima_denuncia d
 join public.rooms r on r.id=d.room_id
 left join public.messages m on m.room_id=r.id
+left join private.message_network_logs n on n.message_id=m.id
 -- Para consultar uma sala específica, descomente e substitua o UUID:
 -- where r.id='00000000-0000-0000-0000-000000000000'::uuid
 order by d.created_at desc,r.id,m.created_at,m.id;
