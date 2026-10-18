@@ -1,4 +1,5 @@
 import {topics, createTopicPicker} from './topics.js';
+import {getTabAuthOptions} from './tab-session.js';
 const $=s=>document.querySelector(s);
 const cfg=window.ENTRELADOS_CONFIG||{};
 const live=Boolean(cfg.supabaseUrl&&cfg.supabaseAnonKey);
@@ -57,7 +58,7 @@ $('#new-topic').onclick=drawTopic;
 $('#mode-label').textContent='Chat por texto · encontros de 30 minutos';
 let captchaToken='',captchaWidget;
 if(cfg.turnstileSiteKey){const holder=document.createElement('div');holder.id='captcha-widget';holder.className='captcha-widget';$('#enter').before(holder);const script=document.createElement('script');script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';script.async=true;script.onload=()=>{captchaWidget=window.turnstile.render(holder,{sitekey:cfg.turnstileSiteKey,theme:'light',size:'flexible',callback:token=>{captchaToken=token},'expired-callback':()=>{captchaToken=''},'error-callback':()=>{captchaToken='';showError({message:'Não foi possível verificar a proteção contra bots. Recarregue a página.'})}})};script.onerror=()=>showError({message:'A verificação de segurança não carregou. Confira sua conexão e recarregue.'});document.head.append(script)}
-async function connect(){if(user)return;const {createClient}=await import('/vendor/supabase.js');db??=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data:{session},error:sessionError}=await db.auth.getSession();check(sessionError);if(session)user=session.user;else{if(cfg.turnstileSiteKey&&!captchaToken)throw new Error('Conclua a verificação de segurança antes de entrar.');const {data,error}=await db.auth.signInAnonymously(captchaToken?{options:{captchaToken}}:{});captchaToken='';if(captchaWidget!==undefined)window.turnstile?.reset(captchaWidget);check(error);user=data.user}}
+async function connect(){if(user)return;const {createClient}=await import('/vendor/supabase.js');db??=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:await getTabAuthOptions()});const {data:{session},error:sessionError}=await db.auth.getSession();check(sessionError);if(session)user=session.user;else{if(cfg.turnstileSiteKey&&!captchaToken)throw new Error('Conclua a verificação de segurança antes de entrar.');const {data,error}=await db.auth.signInAnonymously(captchaToken?{options:{captchaToken}}:{});captchaToken='';if(captchaWidget!==undefined)window.turnstile?.reset(captchaWidget);check(error);user=data.user}}
 function check(error){if(error)throw error}
 function showError(e){$('#entry-error').textContent=e?.message||'Não foi possível conectar. Tente novamente.'}
 function stop(){clearInterval(poll);clearInterval(tick);if(channel){db?.removeChannel(channel);channel=null}}
